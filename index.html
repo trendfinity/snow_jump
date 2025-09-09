@@ -46,16 +46,18 @@
       background: linear-gradient(to top, #1a1a40, #0a0a2a);
       border: 2px solid #fff;
       overflow: hidden;
+      margin-bottom: 50px; /* space for instructions */
     }
 
     /* Character */
     #character {
       position: absolute;
-      bottom: 10px;
+      bottom: 10px; /* fixed above ground */
       left: 50px;
-      width: 60px;
-      height: 60px;
+      width: 50px;
+      height: 50px;
       background-size: cover;
+      background-repeat: no-repeat;
       z-index: 1;
     }
 
@@ -101,8 +103,8 @@
 
     #score {
       position: absolute;
-      top: 10px;
-      right: 15px;
+      top: 5px;
+      right: 10px;
       font-size: 16px;
       font-weight: bold;
       z-index: 2;
@@ -132,10 +134,12 @@
     /* Mobile adjustments */
     @media (max-width: 600px) {
       #game { height: 30vh; }
-      #character { width: 12vw; height: auto; bottom: 10px; left: 8%; }
-      #obstacle { width: 5vw; height: auto; bottom: 10px; }
+      #character { width: 40px; height: 40px; bottom: 10px; left: 30px; }
+      #obstacle { width: 25px; height: 40px; bottom: 10px; }
       #ground { height: 10px; }
-      #moon { width: 10vw; height: auto; top: 5%; left: 5%; }
+      #moon { width: 30px; height: 30px; top: 5%; left: 5%; }
+      #score { font-size: 14px; top: 2%; right: 5%; }
+      #instructions { font-size: 12px; }
     }
   </style>
 </head>
@@ -153,8 +157,9 @@
     <div id="obstacle"></div>
     <div id="ground"></div>
     <div id="score">Score: 0</div>
-    <div id="instructions">Tap screen or press SPACE to jump</div>
   </div>
+
+  <div id="instructions">Tap screen or press SPACE to jump</div>
 
   <script>
     let character, obstacle, scoreDisplay;
@@ -191,8 +196,6 @@
 
       jumping = true;
       let pos = parseInt(window.getComputedStyle(character).bottom) || 10;
-
-      // Mobile-friendly jump
       let jumpHeight = window.innerWidth <= 600 ? 100 : 160;
 
       let up = setInterval(() => {
@@ -214,23 +217,23 @@
 
     function moveObstacle() {
       const gameWidth = document.getElementById('game').offsetWidth;
-      let pos = gameWidth; // start just outside the right edge
+      let pos = gameWidth;
 
       gameInterval = setInterval(() => {
-        if (pos < -obstacle.offsetWidth) {
+        if (pos < -30) {
           pos = gameWidth;
         }
         pos -= 3;
         obstacle.style.left = pos + 'px';
 
         let characterBottom = parseInt(window.getComputedStyle(character).bottom);
-        let characterLeft = 50;
-        let characterRight = characterLeft + 60;
+        let characterLeft = character.offsetLeft;
+        let characterRight = characterLeft + character.offsetWidth;
 
         let obstacleLeft = pos;
-        let obstacleRight = pos + 30;
+        let obstacleRight = pos + obstacle.offsetWidth;
 
-        if (obstacleLeft < characterRight && obstacleRight > characterLeft && characterBottom < 40) {
+        if (obstacleLeft < characterRight && obstacleRight > characterLeft && characterBottom < obstacle.offsetHeight) {
           alert("💀 Game Over! Your score: " + score);
           clearInterval(gameInterval);
           clearInterval(scoreInterval);
