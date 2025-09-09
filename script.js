@@ -1,6 +1,7 @@
 let character, obstacle, scoreDisplay;
 let jumping = false, gameInterval, scoreInterval;
 let score = 0;
+let obstacleSpeed = 3; // initial speed
 
 function startGame(img) {
   document.getElementById('character-select').style.display = 'none';
@@ -19,6 +20,11 @@ function startGame(img) {
   scoreInterval = setInterval(() => {
     score++;
     scoreDisplay.textContent = "Score: " + score;
+
+    // Increase difficulty every 50 points
+    if (score % 50 === 0) {
+      obstacleSpeed += 1; // increase speed
+    }
   }, 200);
 
   document.addEventListener('keydown', jump);
@@ -30,7 +36,7 @@ function jump(e) {
   if (jumping) return;
   if (e.type === 'keydown' && e.code !== 'Space') return;
 
-  playJumpSound(); // 🎵 play jump sound
+  playJumpSound(); // jump sound
 
   jumping = true;
   let pos = parseInt(window.getComputedStyle(character).bottom) || 10;
@@ -60,7 +66,7 @@ function moveObstacle() {
 
   gameInterval = setInterval(() => {
     if (pos < -30) pos = gameWidth;
-    pos -= 3;
+    pos -= obstacleSpeed; // dynamic speed
     obstacle.style.left = pos + 'px';
 
     let characterBottom = parseInt(window.getComputedStyle(character).bottom);
@@ -73,7 +79,7 @@ function moveObstacle() {
     if (obstacleLeft < characterRight && obstacleRight > characterLeft && characterBottom < obstacle.offsetHeight) {
       clearInterval(gameInterval);
       clearInterval(scoreInterval);
-      playGameOverSound(); // 🎵 game-over sound
+      playGameOverSound(); // game-over sound
       document.getElementById('final-score').textContent = score;
       document.getElementById('game-over-overlay').style.display = 'flex';
     }
@@ -105,12 +111,12 @@ function playJumpSound() {
   const gain = ctx.createGain();
 
   oscillator.type = 'square';
-  oscillator.frequency.setValueAtTime(400, ctx.currentTime); // pitch
+  oscillator.frequency.setValueAtTime(400, ctx.currentTime);
   oscillator.connect(gain);
   gain.connect(ctx.destination);
 
   oscillator.start();
-  oscillator.stop(ctx.currentTime + 0.1); // short beep
+  oscillator.stop(ctx.currentTime + 0.1);
 }
 
 function playGameOverSound() {
@@ -124,5 +130,5 @@ function playGameOverSound() {
   gain.connect(ctx.destination);
 
   oscillator.start();
-  oscillator.stop(ctx.currentTime + 0.5); // longer beep
+  oscillator.stop(ctx.currentTime + 0.5);
 }
