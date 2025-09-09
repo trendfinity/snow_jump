@@ -26,4 +26,7 @@ Players can choose their character and jump over obstacles while trying to achie
 - **Adjust difficulty:** Modify obstacle speed or jump height in the JavaScript section.  
 - **Change theme:** Update CSS for background, stars, and ground.  
 
+## Credits
+Game created by **trendfinity** with assistance from **ChatGPT**.  
+
 Enjoy playing and jumping high! 🏃‍♀️🌙
