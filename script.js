@@ -30,6 +30,8 @@ function jump(e) {
   if (jumping) return;
   if (e.type === 'keydown' && e.code !== 'Space') return;
 
+  playJumpSound(); // 🎵 play jump sound
+
   jumping = true;
   let pos = parseInt(window.getComputedStyle(character).bottom) || 10;
   let jumpHeight = 160;
@@ -57,9 +59,7 @@ function moveObstacle() {
   let pos = gameWidth;
 
   gameInterval = setInterval(() => {
-    if (pos < -30) {
-      pos = gameWidth;
-    }
+    if (pos < -30) pos = gameWidth;
     pos -= 3;
     obstacle.style.left = pos + 'px';
 
@@ -73,7 +73,7 @@ function moveObstacle() {
     if (obstacleLeft < characterRight && obstacleRight > characterLeft && characterBottom < obstacle.offsetHeight) {
       clearInterval(gameInterval);
       clearInterval(scoreInterval);
-
+      playGameOverSound(); // 🎵 game-over sound
       document.getElementById('final-score').textContent = score;
       document.getElementById('game-over-overlay').style.display = 'flex';
     }
@@ -96,4 +96,33 @@ function createStars() {
 
 function restartGame() {
   window.location.reload();
+}
+
+/* Web Audio API Sounds */
+function playJumpSound() {
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const oscillator = ctx.createOscillator();
+  const gain = ctx.createGain();
+
+  oscillator.type = 'square';
+  oscillator.frequency.setValueAtTime(400, ctx.currentTime); // pitch
+  oscillator.connect(gain);
+  gain.connect(ctx.destination);
+
+  oscillator.start();
+  oscillator.stop(ctx.currentTime + 0.1); // short beep
+}
+
+function playGameOverSound() {
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const oscillator = ctx.createOscillator();
+  const gain = ctx.createGain();
+
+  oscillator.type = 'sawtooth';
+  oscillator.frequency.setValueAtTime(200, ctx.currentTime);
+  oscillator.connect(gain);
+  gain.connect(ctx.destination);
+
+  oscillator.start();
+  oscillator.stop(ctx.currentTime + 0.5); // longer beep
 }
