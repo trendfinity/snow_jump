@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Runner Game - Night Mode</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0a0a2a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      overflow: hidden;
+      color: #fff;
+    }
+
+    #character-select, #game {
+      text-align: center;
+    }
+
+    #character-select img {
+      width: 100px;
+      height: 100px;
+      margin: 10px;
+      cursor: pointer;
+      border-radius: 10px;
+      transition: transform 0.2s;
+      border: 2px solid #fff;
+    }
+
+    #character-select img:hover {
+      transform: scale(1.1);
+    }
+
+    #game {
+      display: none;
+      position: relative;
+      width: 600px;
+      height: 200px;
+      background: linear-gradient(to top, #1a1a40, #0a0a2a);
+      border: 2px solid #fff;
+      overflow: hidden;
+    }
+
+    /* Character */
+    #character {
+      position: absolute;
+      bottom: 10px; /* stand on top of road */
+      left: 50px;
+      width: 60px;   /* slightly bigger */
+      height: 60px;
+      background-size: cover;
+      z-index: 1;
+    }
+
+    /* Obstacle */
+    #obstacle {
+      position: absolute;
+      bottom: 10px; /* same level as character */
+      left: 600px;
+      width: 30px;
+      height: 50px;
+      background: #4CAF50;
+      border-radius: 5px;
+      z-index: 1;
+    }
+
+    /* Ground scrolling */
+    #ground {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 1200px;
+      height: 20px;
+      background: repeating-linear-gradient(
+        to right,
+        #555,
+        #555 20px,
+        #333 20px,
+        #333 40px
+      );
+      animation: scroll 3s linear infinite;
+      z-index: 0; /* behind character and obstacles */
+    }
+
+    @keyframes scroll {
+      from { transform: translateX(0); }
+      to { transform: translateX(-600px); }
+    }
+
+    #instructions {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #ccc;
+    }
+
+    #score {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    /* Stars */
+    .star {
+      position: absolute;
+      background: white;
+      border-radius: 50%;
+      opacity: 0.8;
+    }
+
+    /* Moon */
+    #moon {
+      position: absolute;
+      top: 20px;
+      left: 30px;
+      width: 40px;
+      height: 40px;
+      background: #fff;
+      border-radius: 50%;
+      box-shadow: 0 0 15px #fff;
+      z-index: 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="character-select">
+    <h2>🌙 Pick your character</h2>
+    <img src="snow1.jpeg" alt="Snow" onclick="startGame('snow1.jpeg')">
+    <img src="wais1.jpeg" alt="Wais" onclick="startGame('wais1.jpeg')">
+    <img src="tomtom1.jpeg" alt="Tomtom" onclick="startGame('tomtom1.jpeg')">
+  </div>
+
+  <div id="game">
+    <div id="moon"></div>
+    <div id="character"></div>
+    <div id="obstacle"></div>
+    <div id="ground"></div>
+    <div id="score">Score: 0</div>
+    <div id="instructions">Tap screen or press SPACE to jump</div>
+  </div>
+
+  <script>
+    let character, obstacle, scoreDisplay;
+    let jumping = false, gameInterval, scoreInterval;
+    let score = 0;
+
+    function startGame(img) {
+      document.getElementById('character-select').style.display = 'none';
+      document.getElementById('game').style.display = 'block';
+
+      character = document.getElementById('character');
+      obstacle = document.getElementById('obstacle');
+      scoreDisplay = document.getElementById('score');
+
+      character.style.backgroundImage = `url(${img})`;
+
+      createStars();
+
+      setTimeout(moveObstacle, 1000); // delay for ready
+
+      scoreInterval = setInterval(() => {
+        score++;
+        scoreDisplay.textContent = "Score: " + score;
+      }, 200);
+
+      document.addEventListener('keydown', jump);
+      document.addEventListener('click', jump);
+    }
+
+    function jump(e) {
+      if (jumping) return;
+      if (e.type === 'keydown' && e.code !== 'Space') return;
+
+      jumping = true;
+      let pos = 0;
+      let up = setInterval(() => {
+        if (pos >= 160) {  // bigger jump
+          clearInterval(up);
+          let down = setInterval(() => {
+            if (pos <= 10) { // stop above ground
+              clearInterval(down);
+              jumping = false;
+            }
+            pos -= 5;
+            character.style.bottom = pos + 'px';
+          }, 20);
+        }
+        pos += 5;
+        character.style.bottom = pos + 'px';
+      }, 20);
+    }
+
+    function moveObstacle() {
+      let pos = 600;
+      gameInterval = setInterval(() => {
+        if (pos < -30) {
+          pos = 600;
+        }
+        pos -= 3;
+        obstacle.style.left = pos + 'px';
+
+        let characterBottom = parseInt(window.getComputedStyle(character).getPropertyValue('bottom'));
+        let characterLeft = 50;
+        let characterRight = characterLeft + 60;
+
+        let obstacleLeft = pos;
+        let obstacleRight = pos + 30;
+
+        if (obstacleLeft < characterRight && obstacleRight > characterLeft && characterBottom < 40) {
+          alert("💀 Game Over! Your score: " + score);
+          clearInterval(gameInterval);
+          clearInterval(scoreInterval);
+          window.location.reload();
+        }
+      }, 20);
+    }
+
+    function createStars() {
+      const gameArea = document.getElementById('game');
+      for (let i = 0; i < 30; i++) {
+        let star = document.createElement('div');
+        star.classList.add('star');
+        let size = Math.random() * 3 + 1;
+        star.style.width = size + 'px';
+        star.style.height = size + 'px';
+        star.style.top = Math.random() * 200 + 'px';
+        star.style.left = Math.random() * 600 + 'px';
+        gameArea.appendChild(star);
+      }
+    }
+  </script>
+</body>
+</html>
